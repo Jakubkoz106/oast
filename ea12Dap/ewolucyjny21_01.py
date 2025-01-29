@@ -3,6 +3,12 @@ import pprint
 import random
 import copy
 
+# Parametry algorytmu
+generations = 1000
+pop_size = 200
+mutation_rate = 0.5
+k = 100
+dap = True
 
 def load_input(file_path):
     with open(file_path, 'r') as file:
@@ -156,30 +162,32 @@ def select_new_parents_from_population(fitness_values, population, pop_size):
 
 
 # Główna funkcja EA
-def evolutionary_algorithm(file_path, generations=10000, pop_size=800, mutation_rate=0.2, k=300, dap=True):
-    # tworzenie populacji
+def evolutionary_algorithm(file_path,
+                           generations=generations,
+                           pop_size=pop_size,
+                           mutation_rate=mutation_rate,
+                           k=k,
+                           dap=True):
+    best_cost_table = []
+    # Wczytanie danych i inicjalizacja
     module_capacity, links, demands = load_input(file_path)
     population = initialize_population(pop_size, demands)
 
-    # Ocena populacji
     if dap:
-        fitness_values = [fitness_functionDAP(chromo, demands, links, module_capacity) for chromo in population]
+        fitness_values = [fitness_functionDAP(chromo, demands, links, module_capacity)
+                          for chromo in population]
     else:
-        fitness_values = [fitness_functionDDAP(chromo, demands, links, module_capacity) for chromo in population]
-    # Aktualizacja najlepszego rozwiązania
+        fitness_values = [fitness_functionDDAP(chromo, demands, links, module_capacity)
+                          for chromo in population]
+
+    # Znajdujemy globalnie najlepsze (na start)
     best_cost = min(fitness_values)
     best_solution = population[fitness_values.index(best_cost)]
 
     for gen in range(generations):
-
-        sorted_population = [x for _, x in sorted(zip(fitness_values, population))]
-
-        # Selekcja rodziców
-        # parents, fitness_values = select_new_parents_from_population(fitness_values,population)  # sorted_population[:pop_size // 2]
-        # parents = [x for _, x in sorted(zip(fitness_values, population))][:len(population)//2]
-        # fitness_values = fitness_values[:len(fitness_values)//2]
-
-        # Krzyżowanie
+        # ---------------------------------------------------------
+        # 1) Generowanie potomstwa poprzez krzyżowanie
+        # ---------------------------------------------------------
         offspring = []
         for i in range(k):
             p1, p2 = random.sample(population, 2)
@@ -187,48 +195,89 @@ def evolutionary_algorithm(file_path, generations=10000, pop_size=800, mutation_
             offspring.append(c1)
             offspring.append(c2)
 
-        # Mutacja
+        # ---------------------------------------------------------
+        # 2) Mutacje
+        # ---------------------------------------------------------
         for child in offspring:
             if random.random() < mutation_rate:
                 mutate(child, demands)
 
-        # Aktualizacja populacji z elityzmem
-        # population = sorted_population[:pop_size // 4] + offspring[:3 * pop_size // 4]
-        population = sorted_population + offspring
+        # ---------------------------------------------------------
+        # 3) Budujemy populację rozszerzoną (stara + potomstwo)
+        # ---------------------------------------------------------
+        population_extended = population + offspring
 
-        # Ocena populacji
+        # ---------------------------------------------------------
+        # 4) Elityzm: przed policzeniem 'current_best_cost'
+        #    wstawiamy globalnie najlepszy osobnik do rozszerzonej populacji
+        # ---------------------------------------------------------
+
+        population_extended[0] = copy.deepcopy(best_solution)
+
+        # ---------------------------------------------------------
+        # 5) Obliczamy koszty w tej rozszerzonej populacji (z wstawioną elitą)
+        # ---------------------------------------------------------
         if dap:
-            fitness_values = [fitness_functionDAP(chromo, demands, links, module_capacity) for chromo in population]
+            fitness_values_extended = [
+                fitness_functionDAP(chromo, demands, links, module_capacity)
+                for chromo in population_extended
+            ]
         else:
-            fitness_values = [fitness_functionDDAP(chromo, demands, links, module_capacity) for chromo in population]
+            fitness_values_extended = [
+                fitness_functionDDAP(chromo, demands, links, module_capacity)
+                for chromo in population_extended
+            ]
 
-        # Aktualizacja najlepszego rozwiązania
-        current_best_cost = min(fitness_values)
-        current_best_solution = population[fitness_values.index(current_best_cost)]
+        # ---------------------------------------------------------
+        # 6) Szukamy najlepszego osobnika w tej rozszerzonej populacji
+        # ---------------------------------------------------------
+        current_best_cost = min(fitness_values_extended)
+        current_best_solution = population_extended[fitness_values_extended.index(current_best_cost)]
 
+        # Jeśli nowy osobnik jest lepszy niż dotychczasowe globalne optimum — aktualizujemy
         if current_best_cost < best_cost:
             best_cost = current_best_cost
             best_solution = copy.deepcopy(current_best_solution)
-            print(best_cost)
-            print(best_solution)
+            print(f"**Nowy najlepszy koszt**: {best_cost}")
 
-        # wybierane są najlepsze N osobniki albo 239 + 240, albo 241
-
-        # population = [x for _, x in sorted(zip(fitness_values, population))][:len(population)//2]
-        # fitness_values = fitness_values[:len(fitness_values)//2]
+        # (Podglądowo) wypisz bieżące minium z populacji (już z elitą)
         pprint.pprint(current_best_cost)
-        population, fitness_values = select_new_parents_from_population(fitness_values, population, pop_size)
 
-        population[0] = best_solution
-        fitness_values[0] = best_cost
-
+        # ---------------------------------------------------------
+        # 7) Selekcja ruletkowa (lub inna) do nowej populacji
+        # ---------------------------------------------------------
+        # UWAGA: w select_new_parents_from_population przekazujemy
+        #        fitness_values_extended i population_extended.
+        population, fitness_values = select_new_parents_from_population(
+            fitness_values_extended[:],
+            population_extended[:],
+            pop_size
+        )
+        best_cost_table.append(best_cost)
+        # ---------------------------------------------------------
+        # 8) Na koniec wyświetlamy globalnie najlepszy koszt
+        # ---------------------------------------------------------
         print(f"Generacja {gen + 1}: Najlepszy koszt/z = {best_cost}")
 
-    if dap: fitness_functionDAP(best_solution, demands, links, module_capacity, True)
-    return best_solution, best_cost
+    # Ewentualnie prezentacja wyników dla DAP
+    if dap:
+        fitness_functionDAP(best_solution, demands, links, module_capacity, bestRes=True)
+    return best_solution, best_cost, best_cost_table
 
 
 # Uruchomienie algorytmu
-best_solution, best_cost = evolutionary_algorithm("net12New.txt")
+best_solution, best_cost, best_cost_table = evolutionary_algorithm("net12New.txt")
 print("Najlepsze rozwiązanie:", best_solution)
 print("Najniższy koszt/z:", best_cost)
+import matplotlib.pyplot as plt
+
+
+# Tworzenie wykresu
+plt.figure(figsize=(10, 6))
+plt.plot(range(1, generations + 1), best_cost_table, label='Najlepszy koszt')
+plt.xlabel('Generacje')
+plt.ylabel('Najlepszy koszt')
+plt.title(f'Algorytm Ewolucyjny\nk={k}, pop_size={pop_size}, mutation_rate={mutation_rate}, dap={dap}')
+plt.legend()
+plt.grid(True)
+plt.show()
