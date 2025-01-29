@@ -241,7 +241,7 @@ def evolutionary_algorithm(file_path,
     best_solution = population[fitness_values.index(best_cost)]
 
     for gen in range(generations):
-        # sorted_population = [x for _, x in sorted(zip(fitness_values, population))]
+
         # ---------------------------------------------------------
         # 1) Generowanie potomstwa poprzez krzyżowanie
         # ---------------------------------------------------------
@@ -284,13 +284,13 @@ def evolutionary_algorithm(file_path,
         current_best_cost = min(fitness_values_extended)
         current_best_solution = population_extended[fitness_values_extended.index(current_best_cost)]
 
-        # Jeśli nowy osobnik jest lepszy niż dotychczasowe globalne optimum — aktualizujemy
+        # Jeśli nowy osobnik jest lepszy niż dotychczasowy globalny — aktualizujemy
         if current_best_cost < best_cost:
             best_cost = current_best_cost
             best_solution = copy.deepcopy(current_best_solution)
             print(f"**Nowy najlepszy koszt**: {best_cost}")
 
-        # (Podglądowo) wypisz bieżące minium z populacji (już z elitą)
+
         pprint.pprint(current_best_cost)
 
         if current_best_cost <= 0:
@@ -304,7 +304,7 @@ def evolutionary_algorithm(file_path,
         best_cost_table.append(best_cost)
 
         # ---------------------------------------------------------
-        # 8) Na koniec wyświetlamy globalnie najlepszy koszt
+        # 8) Na koniec wyświetlamy globalnie najlepsze Z
         # ---------------------------------------------------------
         print(f"Generacja {gen + 1}: Najlepszy koszt/z = {best_cost}")
 

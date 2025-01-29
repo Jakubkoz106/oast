@@ -234,7 +234,7 @@ def evolutionary_algorithm(file_path,
         current_best_cost = min(fitness_values_extended)
         current_best_solution = population_extended[fitness_values_extended.index(current_best_cost)]
 
-        # Jeśli nowy osobnik jest lepszy niż dotychczasowe globalne optimum — aktualizujemy
+        # Jeśli nowy osobnik jest lepszy niż dotychczasowe globalny — aktualizujemy
         if current_best_cost < best_cost:
             best_cost = current_best_cost
             best_solution = copy.deepcopy(current_best_solution)
@@ -244,10 +244,9 @@ def evolutionary_algorithm(file_path,
         pprint.pprint(current_best_cost)
 
         # ---------------------------------------------------------
-        # 7) Selekcja ruletkowa (lub inna) do nowej populacji
+        # 7) Selekcja do nowej populacji
         # ---------------------------------------------------------
-        # UWAGA: w select_new_parents_from_population przekazujemy
-        #        fitness_values_extended i population_extended.
+
         population, fitness_values = select_new_parents_from_population(
             fitness_values_extended[:],
             population_extended[:],
