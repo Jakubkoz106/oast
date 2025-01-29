@@ -156,7 +156,7 @@ def select_new_parents_from_population(fitness_values, population, pop_size):
 
 
 # Główna funkcja EA
-def evolutionary_algorithm(file_path, generations=10000, pop_size=500, mutation_rate=0.1, k=300, dap=True):
+def evolutionary_algorithm(file_path, generations=10000, pop_size=800, mutation_rate=0.2, k=300, dap=True):
     # tworzenie populacji
     module_capacity, links, demands = load_input(file_path)
     population = initialize_population(pop_size, demands)

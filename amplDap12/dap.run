@@ -1,0 +1,48 @@
+option solver 'C:\Users\jakub\Desktop\AMPL\AMPL\cplex.exe';
+
+option presolve_eps 0.00001;
+
+### Setting controls
+
+option display_precision 8;
+
+
+### Reading model
+
+printf '\n==============================\n';
+printf 'Reading model ...\n\n';
+
+model 'C:\Users\jakub\Desktop\AMPL\AMPL\proj\krys\dap.mod';
+### Reading data
+
+printf '\n==============================\n';
+printf 'Reading data ...\n\n';
+
+data 'C:\Users\jakub\Desktop\AMPL\AMPL\proj\krys\net12_updated.dat';
+
+
+display Nodes;
+
+display Links, link_nodeA, link_nodeZ, number_of_modules;#, module_cost;
+
+display Demands, demand_maxPath, demand_volume;
+
+display Demand_pathLinks;
+
+### Solving problem
+
+printf '\n==============================\n';
+printf 'Solving the problem ...\n\n';
+
+solve dap;
+
+display pathDemand_volumeCount;
+display linkDemand_volumeCount;
+
+display z;
+
+
+printf '\n==============================\n';
+printf 'Solving completed.\n\n';
+
+

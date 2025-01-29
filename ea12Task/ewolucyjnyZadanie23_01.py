@@ -212,8 +212,8 @@ def select_new_parents_from_population(fitness_values, population, pop_size):
 
 
 # Główna funkcja EA
-def evolutionary_algorithm(file_path, generations=10000, pop_size=500, mutation_rate=0.01, k=300, dap=True):
-    min_flow = 3
+def evolutionary_algorithm(file_path, generations=2000, pop_size=500, mutation_rate=0.2, k=200, dap=True):
+    min_flow = 5
     max_paths = 2
     module_capacity, links, demands = load_input(file_path)
     population = initialize_population_with_constraints(pop_size, demands, max_paths, min_flow)
@@ -276,6 +276,6 @@ def evolutionary_algorithm(file_path, generations=10000, pop_size=500, mutation_
 
 
 # Uruchomienie algorytmu
-best_solution, best_cost = evolutionary_algorithm("net12_updated_2.txt")
+best_solution, best_cost = evolutionary_algorithm("net12New.txt")
 print("Najlepsze rozwiązanie:", best_solution)
 print("Najniższy koszt/z:", best_cost)
